@@ -2619,7 +2619,32 @@ pub fn inverseDet(m: Mat, out_det: ?*F32x4) Mat {
         out_det.?.* = det;
     }
 
-    if (math.approxEqAbs(f32, det[0], 0.0, math.floatEps(f32))) {
+    //Some point it gives wrong answer and all 0.0
+    //input
+    //1.0       0.0015    0.0         0.0
+    //0.0       0.0026    0.0         0.0
+    //0.0       0.0       0.005       0.0
+    //0.0       0.0       0.5         1.0
+    //wrong output
+    //0.0       0.0       0           0
+    //0.0       0.0       0           0
+    //0.0       0 0       0.005       0
+    //0.0       0 0       0.5         1
+    //expected output
+    //666.0     0.0         0.0         0.0
+    //0.0       384.6       0.0         0.0
+    //0.0       0.0         1.0         0.0
+    //0.0       0.0         0.0         1.0
+
+    //if (math.approxEqAbs(f32, det[0], 0.0, math.floatEps(f32))) {
+    //    return .{
+    //        f32x4(0.0, 0.0, 0.0, 0.0),
+    //        f32x4(0.0, 0.0, 0.0, 0.0),
+    //        f32x4(0.0, 0.0, 0.0, 0.0),
+    //        f32x4(0.0, 0.0, 0.0, 0.0),
+    //    };
+    //}
+    if (math.approxEqAbs(f64, @as(f64, @floatCast(det[0])), 0.0, math.floatEps(f64))) {
         return .{
             f32x4(0.0, 0.0, 0.0, 0.0),
             f32x4(0.0, 0.0, 0.0, 0.0),
@@ -4246,9 +4271,9 @@ fn fftUnswizzle(input: []const F32x4, output: []F32x4) void {
             const n = index / 2;
             var addr =
                 (((@as(usize, @intCast(static.swizzle_table[n & 0xff])) << 24) |
-                (@as(usize, @intCast(static.swizzle_table[(n >> 8) & 0xff])) << 16) |
-                (@as(usize, @intCast(static.swizzle_table[(n >> 16) & 0xff])) << 8) |
-                (@as(usize, @intCast(static.swizzle_table[(n >> 24) & 0xff])))) >> rev32) |
+                    (@as(usize, @intCast(static.swizzle_table[(n >> 8) & 0xff])) << 16) |
+                    (@as(usize, @intCast(static.swizzle_table[(n >> 16) & 0xff])) << 8) |
+                    (@as(usize, @intCast(static.swizzle_table[(n >> 24) & 0xff])))) >> rev32) |
                 ((index & 1) * rev7 * 4);
             f32_output[addr] = input[index][0];
             addr += rev7;
